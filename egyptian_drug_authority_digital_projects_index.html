@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Egyptian Drug Authority — Digital Projects</title>
+  <meta name="description" content="Interactive overview of digital transformation projects at the Egyptian Drug Authority (EDA)." />
+  <style>
+    :root{--bg:#f7f9fc;--card:#ffffff;--accent:#0b5ed7;--muted:#6b7280}
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial}
+    body{background:linear-gradient(180deg,#f3f6fb,white 60%);color:#0f1724}
+    header{background:var(--card);box-shadow:0 6px 18px rgba(12,15,25,0.06);padding:18px 24px;display:flex;align-items:center;gap:16px}
+    .logo{width:56px;height:56px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#0056b3);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
+    main{max-width:1100px;margin:24px auto;padding:0 20px}
+    h1{margin:0;font-size:20px}
+    p.lead{margin:6px 0 0;color:var(--muted);font-size:14px}
+    .controls{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0 22px}
+    .search{flex:1;min-width:220px}
+    input,select{width:100%;padding:10px 12px;border:1px solid #e6eef8;border-radius:8px;font-size:14px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+    .card{background:var(--card);padding:14px;border-radius:10px;box-shadow:0 6px 18px rgba(12,15,25,0.05)}
+    .card h3{margin:0;font-size:16px}
+    .meta{font-size:13px;color:var(--muted);margin-top:6px}
+    .tags{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+    .tag{background:#eef6ff;padding:6px 8px;border-radius:999px;font-size:12px;color:#054a9b}
+    .btn{display:inline-block;padding:8px 12px;border-radius:8px;background:var(--accent);color:#fff;text-decoration:none;font-weight:600}
+    .footer{margin:26px 0 60px;color:var(--muted);font-size:13px}
+    .timeline{margin-top:20px}
+    .timeline ul{list-style:none;padding:0;margin:0}
+    .timeline li{background:var(--card);padding:12px;border-radius:8px;margin-bottom:10px;border-left:4px solid var(--accent)}
+    /* modal */
+    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(6,8,15,0.45);z-index:40}
+    .modal.open{display:flex}
+    .modal .panel{width:min(880px,96%);background:var(--card);padding:18px;border-radius:10px}
+    .close{float:right;border:none;background:transparent;font-size:18px}
+    /* small */
+    @media (max-width:520px){header{padding:12px} .logo{width:48px;height:48px}}
+  </style>
+</head>
+<body>
+  <header>
+    <img src="logo.png" alt="EDA Logo" style="width:250px; margin-bottom:20px;"/>
+    <h1>Egyptian Drug Authority</h1>
+    <p>Digital Transformation Initiatives and Strategic Projects</p>
+</header>
+
+  <main>
+    <section class="controls" aria-label="site controls">
+      <div class="search">
+        <label for="q" class="sr-only">Search projects</label>
+        <input id="q" placeholder="Search projects, e.g., 'track and trace'" aria-label="Search projects" />
+      </div>
+      <div style="width:220px">
+        <label for="filter">Filter by status</label>
+        <select id="filter" aria-label="Filter projects">
+          <option value="all">All statuses</option>
+          <option value="planning">Planning</option>
+          <option value="piloting">Piloting</option>
+          <option value="deployed">Deployed</option>
+          <option value="maintenance">Maintenance</option>
+        </select>
+      </div>
+      <div style="width:220px">
+        <label for="sort">Sort</label>
+        <select id="sort" aria-label="Sort projects">
+          <option value="recent">Most recent</option>
+          <option value="alpha">A → Z</option>
+        </select>
+      </div>
+    </section>
+
+    <section>
+      <div class="grid" id="grid" role="list"></div>
+
+      <div class="timeline">
+        <h2 style="font-size:16px">Project timeline (recent)</h2>
+        <ul id="timeline-list"></ul>
+      </div>
+
+      <div class="footer">
+        <p>Data shown is sample/demo content for illustration. For official information, contact the Egyptian Drug Authority.</p>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="panel" id="modal-panel">
+      <button class="close" id="close-modal" aria-label="close dialog">✕</button>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <script>
+    // Sample dataset — replace with real data when available
+    const PROJECTS = [
+      {
+        id: 'p1',
+        title: 'Track & Trace: National Drug Serialization',
+        status: 'piloting',
+        summary: 'A national serialization and track-and-trace system to prevent counterfeit medicines and improve recalls.',
+        start: '2024-06-01',
+        owner: 'Regulatory Affairs',
+        tags: ['serialization','supply chain','EPCIS']
+      },
+      {
+        id: 'p2',
+        title: 'e-Pharmacy Registration Portal',
+        status: 'deployed',
+        summary: 'A streamlined online portal for pharmacy licensing and renewal with automated document checks.',
+        start: '2023-09-15',
+        owner: 'Licensing & Compliance',
+        tags: ['portal','automation','citizen services']
+      },
+      {
+        id: 'p3',
+        title: 'Regulatory Submissions — eCTD',
+        status: 'planning',
+        summary: 'Introduce electronic Common Technical Document (eCTD) standard for dossier submissions to speed review cycles.',
+        start: '2025-02-01',
+        owner: 'Registration',
+        tags: ['eCTD','standards','review']
+      },
+      {
+        id: 'p4',
+        title: 'Pharmacovigilance Dashboard',
+        status: 'deployed',
+        summary: 'Real-time ADR reporting and analytics to accelerate safety signal detection across the country.',
+        start: '2024-01-10',
+        owner: 'Safety & Pharmacovigilance',
+        tags: ['safety','analytics','dashboard']
+      },
+      {
+        id: 'p5',
+        title: 'Supply Forecasting Pilot',
+        status: 'maintenance',
+        summary: 'Machine-learning assisted forecasting pilot to predict medicine shortages and optimize procurement.',
+        start: '2023-03-20',
+        owner: 'Supply Chain',
+        tags: ['ml','procurement','forecasting']
+      }
+    ];
+
+    // Utilities
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+    // Render functions
+    function renderGrid(list){
+      const grid = $('#grid');
+      grid.innerHTML = '';
+      list.forEach(p=>{
+        const card = document.createElement('article');
+        card.className = 'card';
+        card.setAttribute('role','listitem');
+        card.innerHTML = `
+          <h3>${escapeHtml(p.title)}</h3>
+          <div class="meta">Owner: ${escapeHtml(p.owner)} — Started: ${formatDate(p.start)} — <strong>${capitalize(p.status)}</strong></div>
+          <p style="margin-top:10px">${escapeHtml(p.summary)}</p>
+          <div class="tags">${p.tags.map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
+          <div style="margin-top:12px"><a href="#" data-id="${p.id}" class="btn details">Details</a></div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function renderTimeline(list){
+      const tl = $('#timeline-list');
+      tl.innerHTML = '';
+      // Sort by start desc
+      const sorted = [...list].sort((a,b)=> new Date(b.start)-new Date(a.start)).slice(0,6);
+      sorted.forEach(p=>{
+        const li = document.createElement('li');
+        li.innerHTML = `<strong>${formatDate(p.start)}</strong> — <em>${escapeHtml(p.title)}</em> (${capitalize(p.status)})`;
+        tl.appendChild(li);
+      });
+    }
+
+    // Simple search/filter/sort pipeline
+    function getFiltered(){
+      const q = ($('#q').value || '').trim().toLowerCase();
+      const filter = $('#filter').value;
+      const sort = $('#sort').value;
+      let list = PROJECTS.filter(p=>{
+        const inQ = q === '' || [p.title,p.summary,p.owner,...p.tags].join(' ').toLowerCase().includes(q);
+        const inStatus = filter === 'all' ? true : p.status === filter;
+        return inQ && inStatus;
+      });
+      if(sort === 'recent') list.sort((a,b)=> new Date(b.start)-new Date(a.start));
+      else if(sort === 'alpha') list.sort((a,b)=> a.title.localeCompare(b.title));
+      return list;
+    }
+
+    // Modal detail
+    function openModal(project){
+      const modal = $('#modal');
+      const content = $('#modal-content');
+      content.innerHTML = `
+        <h2>${escapeHtml(project.title)}</h2>
+        <p class="meta">Owner: ${escapeHtml(project.owner)} — Start: ${formatDate(project.start)} — Status: <strong>${capitalize(project.status)}</strong></p>
+        <p>${escapeHtml(project.summary)}</p>
+        <h3 style="margin-top:12px">Tags</h3>
+        <div class="tags">${project.tags.map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
+        <div style="margin-top:12px">
+          <a class="btn" href="#" id="download-json">Download JSON</a>
+          <a class="btn" style="background:#0b8f52;margin-left:8px" href="mailto:info@example.gov.eg?subject=Inquiry about ${encodeURIComponent(project.title)}">Contact owner</a>
+        </div>
+      `;
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden','false');
+      // wire download
+      $('#download-json').addEventListener('click', (e)=>{
+        e.preventDefault();
+        const blob = new Blob([JSON.stringify(project,null,2)], {type:'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `${project.id}.json`;
+        document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+      }, {once:true});
+    }
+
+    function closeModal(){
+      const modal = $('#modal');
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden','true');
+      $('#modal-content').innerHTML = '';
+    }
+
+    // Helpers
+    function escapeHtml(s){ return String(s).replace(/[&<>"']/g, (c)=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function formatDate(d){ try{ return new Date(d).toLocaleDateString('en-GB'); }catch(e){ return d; } }
+    function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+    // Initial render
+    function refresh(){
+      const list = getFiltered();
+      renderGrid(list);
+      renderTimeline(PROJECTS);
+      // wire details buttons
+      $$('#grid .details').forEach(el=> el.addEventListener('click', (e)=>{
+        e.preventDefault(); const id = el.dataset.id; const p = PROJECTS.find(x=>x.id===id); if(p) openModal(p);
+      }));
+    }
+
+    // Events
+    $('#q').addEventListener('input', refresh);
+    $('#filter').addEventListener('change', refresh);
+    $('#sort').addEventListener('change', refresh);
+    $('#close-modal').addEventListener('click', closeModal);
+    $('#modal').addEventListener('click', (e)=>{ if(e.target === $('#modal')) closeModal(); });
+
+    // keyboard close
+    document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeModal(); });
+
+    // render on load
+    document.addEventListener('DOMContentLoaded', refresh);
+  </script>
+</body>
+</html>
